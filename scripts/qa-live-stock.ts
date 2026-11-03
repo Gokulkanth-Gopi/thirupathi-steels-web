@@ -2,7 +2,7 @@ import { APPROVED_BRAND_IDS, SUPPORTED_DIAMETERS } from '../lib/validations/stoc
 import { calculateStockStatus } from '../lib/db/stock';
 import { signSessionToken, hashPassword, verifyPassword } from '../lib/auth';
 
-const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3005';
+const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000';
 
 async function runQaLiveStockSuite() {
   console.log('====================================================');

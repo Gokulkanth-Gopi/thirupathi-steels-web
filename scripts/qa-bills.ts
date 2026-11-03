@@ -1,7 +1,7 @@
 import { calculateFinancials } from '../lib/db/bills';
 import { validateMagicBytes } from '../lib/documents/storage';
 
-const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3005';
+const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000';
 
 async function runBillsQASuite() {
   console.log('====================================================');

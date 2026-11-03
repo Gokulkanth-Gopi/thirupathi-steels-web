@@ -36,3 +36,4 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO schema_migrations (version) VALUES ('005_yard_bays_schema')
 ON CONFLICT (version) DO NOTHING;
+

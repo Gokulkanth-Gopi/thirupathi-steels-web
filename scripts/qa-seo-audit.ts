@@ -1,7 +1,7 @@
 import { CANONICAL_BASE_URL } from '../lib/seo';
 import { BUSINESS_INFO } from '../lib/constants/business';
 
-const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3005';
+const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000';
 
 async function runSeoAuditSuite() {
   console.log('====================================================');

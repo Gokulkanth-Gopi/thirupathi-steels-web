@@ -7,6 +7,8 @@ if (!fs.existsSync(OUT_DIR)) {
   fs.mkdirSync(OUT_DIR, { recursive: true });
 }
 
+const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000';
+
 async function runE2E() {
   console.log('====================================================');
   console.log('🎭 RUNNING PLAYWRIGHT E2E BROWSER VERIFICATION');
@@ -22,7 +24,7 @@ async function runE2E() {
   // TEST 1: Public Live Stock Page
   // ----------------------------------------------------
   console.log('--- 1. PUBLIC LIVE STOCK INTERACTION TEST ---');
-  await page.goto('http://localhost:3005/live-stock', { waitUntil: 'networkidle' });
+  await page.goto(`${BASE_URL}/live-stock`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(600);
 
   const heroHeading = await page.locator('h1').textContent();
@@ -73,7 +75,7 @@ async function runE2E() {
   // TEST 2: Admin Login Flow (Invalid + Valid)
   // ----------------------------------------------------
   console.log('\n--- 2. ADMIN AUTHENTICATION E2E FLOW ---');
-  await page.goto('http://localhost:3005/admin/login', { waitUntil: 'networkidle' });
+  await page.goto(`${BASE_URL}/admin/login`, { waitUntil: 'networkidle' });
 
   // Test invalid login
   await page.fill('input[type="text"]', 'admin');
@@ -98,6 +100,8 @@ async function runE2E() {
   // TEST 3: Admin Live Stock Dashboard & Entry Form
   // ----------------------------------------------------
   console.log('\n--- 3. ADMIN INVENTORY DASHBOARD VERIFICATION ---');
+  await page.goto(`${BASE_URL}/admin/live-stock`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(600);
   const adminHeading = await page.locator('h1').textContent();
   console.log(`  ✓ Admin portal heading: "${adminHeading?.trim()}"`);
 
@@ -106,7 +110,7 @@ async function runE2E() {
   await toggleButton.click();
   await page.waitForTimeout(400);
 
-  const formVisible = await page.locator('form').isVisible();
+  const formVisible = await page.locator('form.space-y-4').isVisible();
   console.log(`  ✓ Stock lot entry form opened: ${formVisible ? 'YES ✅' : 'NO ❌'}`);
 
   // Capture Admin Desktop Screenshot

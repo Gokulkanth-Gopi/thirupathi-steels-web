@@ -10,7 +10,7 @@
     "db:migrate": "tsx db/migrate.ts",
     "db:seed": "tsx db/seed.ts",
     "test:unit": "tsx tests/unit/stock-status.test.ts && tsx tests/unit/auth.test.ts && tsx tests/unit/documents-storage.test.ts",
-    "test:integration": "tsx tests/integration/postgres-database.test.ts && tsx tests/integration/bills-database.test.ts",
+    "test:integration": "tsx tests/integration/postgres-database.test.ts && tsx tests/integration/bills-database.test.ts && tsx tests/integration/yard-bays.test.ts",
     "test:qa": "tsx scripts/qa-live-stock.ts && tsx scripts/qa-bills.ts",
     "test:seo": "tsx scripts/qa-seo-audit.ts",
     "test:e2e": "node scripts/e2e-playwright-qa.mjs && node scripts/e2e-bills-playwright.mjs",

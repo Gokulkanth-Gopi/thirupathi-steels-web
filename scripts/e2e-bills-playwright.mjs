@@ -7,6 +7,8 @@ if (!fs.existsSync(OUT_DIR)) {
   fs.mkdirSync(OUT_DIR, { recursive: true });
 }
 
+const BASE_URL = process.env.TEST_BASE_URL || 'http://localhost:3000';
+
 async function runBillsPlaywrightE2E() {
   console.log('====================================================');
   console.log('🎭 RUNNING TS-04 PLAYWRIGHT E2E BROWSER VERIFICATION');
@@ -22,7 +24,7 @@ async function runBillsPlaywrightE2E() {
   // TEST 1: Unauthenticated Protection & Login Flow
   // ----------------------------------------------------
   console.log('--- 1. ADMIN AUTHENTICATION FLOW ---');
-  await page.goto('http://localhost:3005/admin/login', { waitUntil: 'networkidle' });
+  await page.goto(`${BASE_URL}/admin/login`, { waitUntil: 'networkidle' });
 
   await page.fill('input[type="text"]', 'admin');
   await page.fill('input[type="password"]', 'SalemYard@2026!');
@@ -35,7 +37,7 @@ async function runBillsPlaywrightE2E() {
   // TEST 2: Admin Bills Register
   // ----------------------------------------------------
   console.log('\n--- 2. ADMIN BILLS REGISTER VERIFICATION ---');
-  await page.goto('http://localhost:3005/admin/bills', { waitUntil: 'networkidle' });
+  await page.goto(`${BASE_URL}/admin/bills`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(600);
 
   const headingText = await page.locator('h1').textContent();
@@ -83,7 +85,7 @@ async function runBillsPlaywrightE2E() {
   // ----------------------------------------------------
   console.log('\n--- 3. BILL DETAIL & DOCUMENT VIEWER VERIFICATION ---');
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto('http://localhost:3005/admin/bills/sample_lot_detail', { waitUntil: 'networkidle' });
+  await page.goto(`${BASE_URL}/admin/bills/sample_lot_detail`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(600);
 
   const detailScreenshot = path.join(OUT_DIR, 'desktop_admin_bill_detail.png');

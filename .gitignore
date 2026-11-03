@@ -27,6 +27,7 @@
 /.gemini/
 /.agent/
 /.gsd/
+/.taste-skill/
 
 # SQLite & local temp DB files
 *.db
