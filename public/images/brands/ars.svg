@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 50" fill="none">
+  <!-- ARS TMT BARS Logo -->
+  <g transform="translate(10, 5)">
+    <text x="70" y="22" font-family="'Inter', sans-serif" font-weight="900" font-size="22" fill="#D32F2F" text-anchor="middle" letter-spacing="1">ARS</text>
+    <text x="70" y="34" font-family="'Inter', sans-serif" font-weight="800" font-size="10" fill="#0D47A1" text-anchor="middle" letter-spacing="2.5">TMT BARS</text>
+  </g>
+</svg>

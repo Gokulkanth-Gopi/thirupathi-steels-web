@@ -1,0 +1,35 @@
+{
+  "mcpServers": {
+    "designmd": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "designmd-mcp"
+      ],
+      "env": {
+        "DESIGNMD_API_KEY": "dk_cc3b91d993116738fffa80ea39ec130d63042ba9"
+      }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ]
+    },
+    "rea": {
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Users\\gokul\\AppData\\Roaming\\npm\\node_modules\\rea-agents\\scripts\\rea.mjs",
+        "mcp"
+      ]
+    },
+    "21st": {
+      "url": "https://21st.dev/api/mcp",
+      "serverUrl": "https://21st.dev/api/mcp",
+      "headers": {
+        "x-api-key": "21st_sk_60c4693586bfa74086536ccec09d6da962e2da9a0ed37f1ade174121ad4f9cd8"
+      }
+    }
+  }
+}

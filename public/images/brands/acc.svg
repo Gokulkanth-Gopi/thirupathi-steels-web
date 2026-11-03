@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 50" fill="none">
+  <!-- ACC Logo -->
+  <g transform="translate(10, 5)">
+    <rect x="0" y="2" width="120" height="36" rx="8" fill="#D32F2F"/>
+    <text x="60" y="28" font-family="'Inter', sans-serif" font-weight="900" font-size="24" fill="#FFFFFF" text-anchor="middle" letter-spacing="2">ACC</text>
+  </g>
+</svg>

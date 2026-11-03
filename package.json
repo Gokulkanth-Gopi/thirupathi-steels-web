@@ -1,0 +1,48 @@
+{
+  "name": "thirupathi-steels-web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:migrate": "tsx db/migrate.ts",
+    "db:seed": "tsx db/seed.ts",
+    "test:unit": "tsx tests/unit/stock-status.test.ts && tsx tests/unit/auth.test.ts && tsx tests/unit/documents-storage.test.ts",
+    "test:integration": "tsx tests/integration/postgres-database.test.ts && tsx tests/integration/bills-database.test.ts",
+    "test:qa": "tsx scripts/qa-live-stock.ts && tsx scripts/qa-bills.ts",
+    "test:seo": "tsx scripts/qa-seo-audit.ts",
+    "test:e2e": "node scripts/e2e-playwright-qa.mjs && node scripts/e2e-bills-playwright.mjs",
+    "test": "npm run test:unit && npm run test:integration && npm run test:qa && npm run test:seo"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "framer-motion": "^14.9.0",
+    "gsap": "^3.12.7",
+    "lucide-react": "^0.475.0",
+    "motion": "^14.9.0",
+    "next": "^15.1.7",
+    "pg": "^8.13.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sharp": "^0.33.5",
+    "tailwind-merge": "^3.0.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "@types/pg": "^8.11.11",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^15.1.7",
+    "pg-mem": "^3.0.14",
+    "playwright": "^1.64.1",
+    "postcss": "^8.5.2",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

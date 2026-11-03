@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 50" fill="none">
+  <!-- JSW Steel Logo -->
+  <g transform="translate(10, 5)">
+    <!-- Red Chevron Accent -->
+    <path d="M4 32L18 8l14 24h-7L18 18l-7 14H4z" fill="#D32F2F"/>
+    <text x="38" y="28" font-family="'Inter', sans-serif" font-weight="900" font-size="26" fill="#0D47A1" letter-spacing="-0.5">JSW</text>
+    <text x="100" y="28" font-family="'Inter', sans-serif" font-weight="700" font-size="14" fill="#D32F2F" font-style="italic">Steel</text>
+  </g>
+</svg>

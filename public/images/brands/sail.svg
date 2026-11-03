@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 50" fill="none">
+  <!-- SAIL Logo -->
+  <g transform="translate(15, 6)">
+    <!-- Iconic SAIL Diamond & Ingot Icon -->
+    <path d="M18 4L34 20L18 36L2 20Z" fill="#0D47A1"/>
+    <circle cx="18" cy="20" r="5" fill="#FFFFFF"/>
+    <text x="50" y="27" font-family="'Inter', sans-serif" font-weight="900" font-size="24" fill="#0D47A1" letter-spacing="1">SAIL</text>
+  </g>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="none">
+  <g transform="translate(15, 8)">
+    <!-- TATA Tiscon Brand Logo -->
+    <path d="M12 4h14v4h-4.5v18h-5V8H12V4z" fill="#0c2340"/>
+    <path d="M30 4h5l8 22h-5.2l-1.8-5.2h-7.8L26.4 26H22L30 4zm4 4l-2.6 8.5h5.3L34 8z" fill="#0c2340"/>
+    <path d="M48 4h14v4h-4.5v18h-5V8H48V4z" fill="#0c2340"/>
+    <path d="M66 4h5l8 22h-5.2l-1.8-5.2h-7.8L62.4 26H58L66 4zm4 4l-2.6 8.5h5.3L70 8z" fill="#0c2340"/>
+    <!-- TISCON Subtext in signature blue -->
+    <text x="88" y="22" font-family="'Inter', sans-serif" font-weight="900" font-size="20" fill="#005a9c" letter-spacing="1">TISCON</text>
+    <rect x="0" y="32" width="170" height="2" fill="#005a9c" rx="1"/>
+  </g>
+</svg>

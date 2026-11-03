@@ -1,0 +1,197 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --color-primary: #008C84;
+    --color-secondary: #A7B0B7;
+    --color-accent: #263238;
+    --color-neutral: #F5F7F7;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  body {
+    background-color: #F5F7F7;
+    color: #263238;
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background-color: rgba(12, 67, 51, 0.2);
+    color: #04221a;
+  }
+
+  /* Accessible focus indicators */
+  :focus-visible {
+    outline: 2px solid #047857;
+    outline-offset: 2px;
+  }
+
+  input, textarea, [contenteditable="true"] {
+    caret-color: #0c4a3b;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  a, button, [role="button"] {
+    cursor: pointer;
+  }
+
+  /* Respect user motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Clean Industrial scrollbar */
+  ::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #E9ECEE;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #A7B0B7;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #7F8B94;
+  }
+}
+
+@layer utilities {
+  .subtle-grid {
+    background-image: radial-gradient(rgba(38, 50, 56, 0.08) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* SaaS Dashboard Signature Utilities */
+  .saas-card {
+    background-color: #ffffff;
+    border: 1px solid rgba(216, 222, 226, 0.7);
+    border-radius: 1.5rem;
+    box-shadow: 0 2px 14px 0 rgba(15, 23, 42, 0.03), 0 1px 3px 0 rgba(15, 23, 42, 0.02);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .saas-card:hover {
+    box-shadow: 0 12px 32px 0 rgba(15, 23, 42, 0.07), 0 2px 6px 0 rgba(15, 23, 42, 0.03);
+    transform: translateY(-2px);
+  }
+
+  .saas-dark-card {
+    background: linear-gradient(145deg, #0c4333 0%, #083427 45%, #04221a 100%);
+    border: 1px solid rgba(16, 185, 129, 0.15);
+    border-radius: 1.5rem;
+    box-shadow: 0 8px 24px -4px rgba(12, 67, 51, 0.35);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .saas-dark-card:hover {
+    box-shadow: 0 14px 36px -4px rgba(12, 67, 51, 0.45);
+    transform: translateY(-2px);
+  }
+
+  /* Diagonal Stripe Pattern for Capsule Bar Charts (matching reference) */
+  .pattern-stripes-green {
+    background: repeating-linear-gradient(
+      -45deg,
+      #10b981,
+      #10b981 4px,
+      #059669 4px,
+      #059669 8px
+    );
+  }
+
+  .pattern-stripes-light {
+    background: repeating-linear-gradient(
+      -45deg,
+      #e2e8f0,
+      #e2e8f0 4px,
+      #cbd5e1 4px,
+      #cbd5e1 8px
+    );
+  }
+
+  .pattern-stripes-emerald {
+    background: repeating-linear-gradient(
+      -45deg,
+      #047857,
+      #047857 4px,
+      #065f46 4px,
+      #065f46 8px
+    );
+  }
+
+  /* SaaS Card Entrance Animations */
+  @keyframes saasFadeUp {
+    0% {
+      opacity: 0;
+      transform: translateY(14px) scale(0.985);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .animate-saas-in {
+    animation: saasFadeUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-saas-in-delay-1 {
+    animation: saasFadeUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.08s forwards;
+    opacity: 0;
+  }
+
+  .animate-saas-in-delay-2 {
+    animation: saasFadeUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.16s forwards;
+    opacity: 0;
+  }
+
+  .animate-saas-in-delay-3 {
+    animation: saasFadeUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.24s forwards;
+    opacity: 0;
+  }
+
+  /* Subtle pulsing radar for live terminal */
+  @keyframes saasPulseSlow {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.15);
+      opacity: 0.7;
+    }
+  }
+
+  .animate-saas-pulse {
+    animation: saasPulseSlow 2.5s infinite ease-in-out;
+  }
+}
