@@ -16,6 +16,38 @@ export default function RootLayout({
     <html lang="en" className="dark scroll-smooth">
       <head>
         <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  // Guard against browser extension injection bugs (e.g. Brave iOS WalletTabHelper)
+                  window.addEventListener('error', function(e) {
+                    if (e && e.message && (
+                      e.message.indexOf('ethereum') !== -1 ||
+                      e.message.indexOf('selectedAddress') !== -1
+                    )) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      return true;
+                    }
+                  }, true);
+
+                  // Safe stub so attempts like 'window.ethereum.selectedAddress = undefined' do not throw TypeError
+                  if (typeof window !== 'undefined' && typeof window.ethereum === 'undefined') {
+                    var _eth = {};
+                    Object.defineProperty(window, 'ethereum', {
+                      get: function() { return _eth; },
+                      set: function(val) { _eth = val; },
+                      configurable: true,
+                      enumerable: false
+                    });
+                  }
+                } catch (_) {}
+              })();
+            `,
+          }}
+        />
+        <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />

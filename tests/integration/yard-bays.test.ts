@@ -27,6 +27,33 @@ async function runYardBaysIntegrationTests() {
   console.log('====================================================\n');
 
   try {
+    // 0. Ensure baseline 8 standard bays exist
+    const standardBays = [
+      { id: 'bay-a1', bay_code: 'Bay A-1', name: 'Primary Column & Footing Stacking', section: 'Section A (Heavy Rebars)', primary_diameters: '12,16', max_capacity_mt: 60, display_order: 1, is_active: true, notes: 'Gantry 1 Heavy Overhead Crane Access' },
+      { id: 'bay-a2', bay_code: 'Bay A-2', name: 'High-Rise Beam & Transfer Girder Stacking', section: 'Section A (Heavy Rebars)', primary_diameters: '16,20', max_capacity_mt: 50, display_order: 2, is_active: true, notes: 'Direct Trailer Loading Bay' },
+      { id: 'bay-b1', bay_code: 'Bay B-1', name: 'Residential Slab & Staircase Stacking', section: 'Section B (Medium Rebars)', primary_diameters: '10', max_capacity_mt: 40, display_order: 3, is_active: true, notes: 'High Turnover Residential Fast Track' },
+      { id: 'bay-b2', bay_code: 'Bay B-2', name: 'Raft Foundation & Pier Stacking', section: 'Section B (Medium Rebars)', primary_diameters: '20', max_capacity_mt: 40, display_order: 4, is_active: true, notes: 'Heavy Infrastructure Ground Berth' },
+      { id: 'bay-c1', bay_code: 'Bay C-1', name: 'Lateral Ties & Beam Stirrup Bundles', section: 'Section C (Stirrup & Coils)', primary_diameters: '8', max_capacity_mt: 30, display_order: 5, is_active: true, notes: 'Adjacent to Cut & Bend Workshop' },
+      { id: 'bay-c2', bay_code: 'Bay C-2', name: 'Specialized 20mm & Secondary Coils', section: 'Section C (Stirrup & Coils)', primary_diameters: '8,20', max_capacity_mt: 30, display_order: 6, is_active: true, notes: 'Dual Diameter Secondary Staging' },
+      { id: 'bay-d1', bay_code: 'Bay D-1', name: 'Civil Infrastructure & Bridge Cores', section: 'Section D (Infrastructure)', primary_diameters: '25', max_capacity_mt: 35, display_order: 7, is_active: true, notes: 'Certified Infrastructure Lot Berth' },
+      { id: 'bay-e1', bay_code: 'Bay E-1', name: 'Secondary & Commercial Fe 550D Rebars', section: 'Section E (Commercial Lots)', primary_diameters: '10,12,16', max_capacity_mt: 45, display_order: 8, is_active: true, notes: 'Secondary Commercial Inward Depot' },
+    ];
+    for (const b of standardBays) {
+      const existing = (await getYardBayById(b.id)) || (await getYardBayById(b.bay_code));
+      if (!existing) {
+        await createYardBay({
+          bayCode: b.bay_code,
+          name: b.name,
+          section: b.section,
+          primaryDiameters: b.primary_diameters.split(',').map(Number),
+          maxCapacityMt: b.max_capacity_mt,
+          displayOrder: b.display_order,
+          isActive: b.is_active,
+          notes: b.notes,
+        });
+      }
+    }
+
     // 1. Fetch initial bays
     console.log('--- 1. RETRIEVE YARD BAYS ---');
     const initialBays = await getAllYardBaysRaw();
