@@ -64,18 +64,23 @@ export default function AboutPage() {
           </div>
 
           <div className="lg:col-span-5">
-            <div className="rounded-2xl bg-neutral border border-steel-200 p-2 overflow-hidden shadow-card">
-              <div className="relative h-72 sm:h-84 w-full rounded-xl overflow-hidden bg-white">
+            <div className="rounded-2xl bg-neutral border border-steel-200 p-2 overflow-hidden shadow-card group hover:shadow-card-hover hover:border-brand/40 transition-all duration-300">
+              <div className="relative h-80 sm:h-[420px] w-full rounded-xl overflow-hidden bg-steel-100">
                 <Image
-                  src="/images/home/steel-yard-hero.jpg"
-                  alt="Thirupathi Steels Salem Rebar Yard"
+                  src="/images/about/thirupathi-steels-yard-entrance.jpg"
+                  alt="Thirupathi Steels Salem Main Yard Entrance & Logistics Fleet"
                   fill
-                  sizes="(max-width: 1024px) 100vw, 500px"
-                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 600px"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  priority
                 />
+                <div className="absolute top-3 left-3 px-3 py-1.5 rounded-lg bg-black/75 backdrop-blur-xs text-white text-xs font-bold flex items-center gap-1.5 shadow-md">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Salem Yard & Delivery Fleet</span>
+                </div>
               </div>
-              <div className="p-3 text-center text-xs text-steel-600 font-medium">
-                Thirupathi Steels Salem Yard Facility • Seelanaickenpatti, Salem
+              <div className="p-3.5 text-center text-xs text-steel-700 font-semibold flex items-center justify-center gap-2">
+                <span>Thirupathi Steels Commercial Yard • Seelanaickenpatti, Salem</span>
               </div>
             </div>
           </div>
