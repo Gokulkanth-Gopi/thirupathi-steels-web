@@ -137,7 +137,7 @@ export function SaasDashboardView({
   });
 
   // Calculate Yard Capacity Percentage against database capacity
-  const totalCapacityMt = propCapacityMt !== undefined && propCapacityMt > 0 ? propCapacityMt : 330;
+  const totalCapacityMt = propCapacityMt !== undefined ? propCapacityMt : 330;
   const capacityPercent = totalCapacityMt > 0 ? Math.min(100, Math.round((Number(totalMt) / totalCapacityMt) * 100)) : 0;
   const dashOffset = Number((125.6 * (1 - capacityPercent / 100)).toFixed(1));
 

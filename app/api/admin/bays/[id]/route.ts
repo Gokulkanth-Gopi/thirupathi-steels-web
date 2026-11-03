@@ -3,6 +3,13 @@ import { getAuthenticatedUser } from '@/lib/auth';
 import { getYardBayById, updateYardBay, deleteYardBay } from '@/lib/db/stock';
 
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+  'Pragma': 'no-cache',
+  'Expires': '0',
+};
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -14,7 +21,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized. Staff session required.' },
-        { status: 401 }
+        { status: 401, headers: NO_CACHE_HEADERS }
       );
     }
 
@@ -24,19 +31,22 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (!bay) {
       return NextResponse.json(
         { success: false, error: 'Yard bay not found' },
-        { status: 404 }
+        { status: 404, headers: NO_CACHE_HEADERS }
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      data: bay,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        data: bay,
+      },
+      { headers: NO_CACHE_HEADERS }
+    );
   } catch (error: any) {
     console.error('Error retrieving yard bay:', error);
     return NextResponse.json(
       { success: false, error: error?.message || 'Failed to retrieve yard bay' },
-      { status: 500 }
+      { status: 500, headers: NO_CACHE_HEADERS }
     );
   }
 }
@@ -134,7 +144,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
     return NextResponse.json(
       { success: false, error: error?.message || 'Failed to update yard bay' },
-      { status: 500 }
+      { status: 500, headers: NO_CACHE_HEADERS }
     );
   }
 }
@@ -145,19 +155,19 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized. Staff session required.' },
-        { status: 401 }
+        { status: 401, headers: NO_CACHE_HEADERS }
       );
     }
 
     const { id } = await params;
     const result = await deleteYardBay(id);
 
-    return NextResponse.json(result);
+    return NextResponse.json(result, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     console.error('Error deleting yard bay:', error);
     return NextResponse.json(
       { success: false, error: error?.message || 'Failed to delete yard bay' },
-      { status: 400 }
+      { status: 400, headers: NO_CACHE_HEADERS }
     );
   }
 }

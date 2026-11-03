@@ -57,7 +57,10 @@ export function AdminBillEntryModal({
   React.useEffect(() => {
     async function fetchBays() {
       try {
-        const res = await fetch('/api/bays');
+        const res = await fetch('/api/bays', {
+          cache: 'no-store',
+          headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' },
+        });
         const json = await res.json();
         if (json.success && json.data?.bays) {
           setBays(json.data.bays);

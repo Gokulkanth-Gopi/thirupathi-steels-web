@@ -644,6 +644,7 @@ export async function getAllYardBaysRaw(): Promise<YardBayRow[]> {
 }
 
 export async function getYardBayById(id: string): Promise<YardBayRow | null> {
+  const cleanId = String(id).trim();
   const rows = await query<YardBayRow>(`
     SELECT 
       id, 
@@ -658,9 +659,9 @@ export async function getYardBayById(id: string): Promise<YardBayRow | null> {
       created_at, 
       updated_at
     FROM yard_bays
-    WHERE id = ? OR bay_code = ?
+    WHERE LOWER(id) = LOWER(?) OR LOWER(bay_code) = LOWER(?)
     LIMIT 1
-  `, [id, id]);
+  `, [cleanId, cleanId]);
   return rows[0] || null;
 }
 
@@ -748,10 +749,10 @@ export async function deleteYardBay(id: string): Promise<{ success: boolean; mes
     throw new Error(`Yard bay with ID "${id}" not found`);
   }
 
-  // Safety check: verify if any stock lot is located in this bay
+  // Safety check: verify if any active stock lot is located in this bay
   const activeLots = await query<{ count: number }>(`
     SELECT COUNT(*) as count FROM stock_lots 
-    WHERE (bay_number = ? OR bay_number = ?) AND is_active = TRUE
+    WHERE (LOWER(TRIM(bay_number)) = LOWER(TRIM(?)) OR LOWER(TRIM(bay_number)) = LOWER(TRIM(?))) AND is_active = TRUE
   `, [existing.bay_code, existing.id]);
 
   const count = Number(activeLots[0]?.count || 0);
@@ -775,22 +776,8 @@ export async function getYardBaysData(): Promise<{
   // 1. Fetch all active stock lots
   const lots = await getAdminStockLots();
 
-  // 2. Fetch bays dynamically from yard_bays table
-  let rawBays = await getAllYardBaysRaw();
-
-  // Fallback to standard Salem configuration if yard_bays table is empty
-  if (!rawBays || rawBays.length === 0) {
-    rawBays = [
-      { id: 'bay-a1', bay_code: 'Bay A-1', name: 'Primary Column & Footing Stacking', section: 'Section A (Heavy Rebars)', primary_diameters: '12,16', max_capacity_mt: 60, display_order: 1, is_active: true, notes: 'Gantry 1 Heavy Overhead Crane Access', created_at: '', updated_at: '' },
-      { id: 'bay-a2', bay_code: 'Bay A-2', name: 'High-Rise Beam & Transfer Girder Stacking', section: 'Section A (Heavy Rebars)', primary_diameters: '16,20', max_capacity_mt: 50, display_order: 2, is_active: true, notes: 'Direct Trailer Loading Bay', created_at: '', updated_at: '' },
-      { id: 'bay-b1', bay_code: 'Bay B-1', name: 'Residential Slab & Staircase Stacking', section: 'Section B (Medium Rebars)', primary_diameters: '10', max_capacity_mt: 40, display_order: 3, is_active: true, notes: 'High Turnover Residential Fast Track', created_at: '', updated_at: '' },
-      { id: 'bay-b2', bay_code: 'Bay B-2', name: 'Raft Foundation & Pier Stacking', section: 'Section B (Medium Rebars)', primary_diameters: '20', max_capacity_mt: 40, display_order: 4, is_active: true, notes: 'Heavy Infrastructure Ground Berth', created_at: '', updated_at: '' },
-      { id: 'bay-c1', bay_code: 'Bay C-1', name: 'Lateral Ties & Beam Stirrup Bundles', section: 'Section C (Stirrup & Coils)', primary_diameters: '8', max_capacity_mt: 30, display_order: 5, is_active: true, notes: 'Adjacent to Cut & Bend Workshop', created_at: '', updated_at: '' },
-      { id: 'bay-c2', bay_code: 'Bay C-2', name: 'Specialized 20mm & Secondary Coils', section: 'Section C (Stirrup & Coils)', primary_diameters: '8,20', max_capacity_mt: 30, display_order: 6, is_active: true, notes: 'Dual Diameter Secondary Staging', created_at: '', updated_at: '' },
-      { id: 'bay-d1', bay_code: 'Bay D-1', name: 'Civil Infrastructure & Bridge Cores', section: 'Section D (Infrastructure)', primary_diameters: '25', max_capacity_mt: 35, display_order: 7, is_active: true, notes: 'Certified Infrastructure Lot Berth', created_at: '', updated_at: '' },
-      { id: 'bay-e1', bay_code: 'Bay E-1', name: 'Secondary & Commercial Fe 550D Rebars', section: 'Section E (Commercial Lots)', primary_diameters: '10,12,16', max_capacity_mt: 45, display_order: 8, is_active: true, notes: 'Secondary Commercial Inward Depot', created_at: '', updated_at: '' },
-    ];
-  }
+  // 2. Fetch bays dynamically from yard_bays table (PostgreSQL 18 authoritative)
+  const rawBays = (await getAllYardBaysRaw()) || [];
 
   let totalCapacityMt = 0;
   let totalOccupiedMt = 0;

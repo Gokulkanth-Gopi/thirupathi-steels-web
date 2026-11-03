@@ -91,7 +91,10 @@ export default function AdminYardBaysPage() {
   async function loadBays() {
     try {
       setLoading(true);
-      const res = await fetch('/api/admin/bays', { cache: 'no-store' });
+      const res = await fetch('/api/admin/bays', {
+        cache: 'no-store',
+        headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' },
+      });
       if (res.status === 401) {
         router.push('/admin/login');
         return;
@@ -209,6 +212,7 @@ export default function AdminYardBaysPage() {
       const bayLabel = formData.bayCode.toLowerCase().startsWith('bay') ? formData.bayCode : `Bay ${formData.bayCode}`;
       showToast('success', isEdit ? `${bayLabel} updated successfully in database.` : `${bayLabel} created successfully.`);
       await loadBays();
+      router.refresh();
     } catch (err: any) {
       setFormError(err?.message || 'Network error while saving bay.');
     } finally {
@@ -249,6 +253,7 @@ export default function AdminYardBaysPage() {
 
       // Re-fetch authoritative metrics
       await loadBays();
+      router.refresh();
     } catch (err: any) {
       showToast('error', err?.message || 'Failed to delete bay.');
     } finally {

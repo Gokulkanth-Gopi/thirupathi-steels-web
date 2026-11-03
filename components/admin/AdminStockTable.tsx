@@ -42,7 +42,10 @@ export function AdminStockTable({ lots, initialSearch = '', onRefresh }: AdminSt
   React.useEffect(() => {
     async function fetchBays() {
       try {
-        const res = await fetch('/api/bays');
+        const res = await fetch('/api/bays', {
+          cache: 'no-store',
+          headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' },
+        });
         const json = await res.json();
         if (json.success && json.data?.bays) {
           setDbBays(json.data.bays);
@@ -100,7 +103,7 @@ export function AdminStockTable({ lots, initialSearch = '', onRefresh }: AdminSt
   );
   const bays = Array.from(new Set([
     ...dbBays.map((b) => b.bay_code),
-    ...lots.map((l) => l.bay_number).filter(Boolean)
+    ...lots.filter((l) => l.is_active && l.bay_number).map((l) => l.bay_number)
   ])).sort();
 
   // Filter logic
