@@ -34,6 +34,3 @@ INSERT INTO yard_bays (id, bay_code, name, section, primary_diameters, max_capac
 ('bay-e1', 'Bay E-1', 'Secondary & Commercial Fe 550D Rebars', 'Section E (Commercial Lots)', '10,12,16', 45.00, 8, TRUE, 'Secondary Commercial Inward Depot')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO schema_migrations (version) VALUES ('005_yard_bays_schema')
-ON CONFLICT (version) DO NOTHING;
-

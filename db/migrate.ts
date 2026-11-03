@@ -1,5 +1,27 @@
 import fs from 'fs';
 import path from 'path';
+
+// Pre-load .env configuration for standalone migration CLI runs
+if (!process.env.DATABASE_URL) {
+  const envPath = path.resolve(process.cwd(), '.env');
+  if (fs.existsSync(envPath)) {
+    const lines = fs.readFileSync(envPath, 'utf8').split('\n');
+    for (const line of lines) {
+      const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+      if (match) {
+        const key = match[1];
+        let val = (match[2] || '').trim();
+        if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+          val = val.slice(1, -1);
+        }
+        if (!process.env[key]) {
+          process.env[key] = val;
+        }
+      }
+    }
+  }
+}
+
 import { execute, query } from '../lib/db';
 
 async function runMigration() {
@@ -48,7 +70,7 @@ async function runMigration() {
       await execute(statement);
     }
 
-    await execute('INSERT INTO schema_migrations (version) VALUES (?)', [file]);
+    await execute('INSERT INTO schema_migrations (version) VALUES (?) ON CONFLICT (version) DO NOTHING', [file]);
     console.log(`  ✅ Applied migration: ${file}`);
     count++;
   }

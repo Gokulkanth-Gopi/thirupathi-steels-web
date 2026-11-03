@@ -1,8 +1,32 @@
 import { Pool, PoolClient, QueryResultRow } from 'pg';
+import fs from 'fs';
+import path from 'path';
 import { getDevMemoryPool } from './memory-engine';
 
-// Environment variable extraction
-const DATABASE_URL = process.env.DATABASE_URL;
+// Environment variable extraction with automatic .env fallback
+function getDatabaseUrl(): string | undefined {
+  if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
+  try {
+    const envPath = path.resolve(process.cwd(), '.env');
+    if (fs.existsSync(envPath)) {
+      const lines = fs.readFileSync(envPath, 'utf8').split('\n');
+      for (const line of lines) {
+        const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+        if (match && match[1] === 'DATABASE_URL') {
+          let val = (match[2] || '').trim();
+          if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+            val = val.slice(1, -1);
+          }
+          process.env.DATABASE_URL = val;
+          return val;
+        }
+      }
+    }
+  } catch {}
+  return process.env.DATABASE_URL;
+}
+
+const DATABASE_URL = getDatabaseUrl();
 
 export type DBParam = string | number | boolean | null | undefined | Date;
 
