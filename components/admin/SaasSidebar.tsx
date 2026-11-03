@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -133,20 +134,25 @@ export function SaasSidebar({
         <Link
           href="/admin"
           onClick={onCloseMobile}
-          className="flex items-center gap-3 px-2 py-3 mb-6 rounded-2xl hover:bg-steel-50 transition-colors cursor-pointer group"
+          className="flex items-center gap-3 px-2 py-2.5 mb-6 rounded-2xl hover:bg-steel-50/80 focus-visible:ring-2 focus-visible:ring-emerald-500 outline-none transition-all cursor-pointer group"
         >
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#0c4a3b] via-[#093c30] to-[#04281f] flex items-center justify-center text-white shadow-md shadow-[#0c4a3b]/20 flex-shrink-0 group-hover:scale-105 transition-transform">
-            <div className="relative w-5 h-5 flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full border-2 border-emerald-400 opacity-80" />
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-            </div>
+          <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50/60 to-white border border-emerald-100/90 p-1 flex items-center justify-center shadow-2xs flex-shrink-0 group-hover:scale-105 group-hover:border-emerald-300 group-hover:shadow-xs transition-all duration-200">
+            <Image
+              src="/images/logo/Teal T and Steel S Emblem-4.png"
+              alt="Thirupathi Steels Logo"
+              width={38}
+              height={38}
+              className="object-contain w-full h-full drop-shadow-2xs"
+              priority
+            />
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="font-extrabold text-[#111827] text-base tracking-tight leading-none flex items-center gap-1.5">
               <span>Thirupathi</span>
               <span className="text-emerald-700 font-black">Steels</span>
             </div>
-            <div className="text-[10px] font-semibold text-steel-500 uppercase tracking-widest mt-1 flex items-center gap-1">
+            <div className="text-[10px] font-semibold text-steel-500 uppercase tracking-widest mt-1.5 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               <span>Salem Yard Portal</span>
             </div>
           </div>
