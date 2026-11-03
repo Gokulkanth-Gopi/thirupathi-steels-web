@@ -48,10 +48,26 @@ export function AdminBillEntryModal({
   const [taxRatePercent, setTaxRatePercent] = useState<number>(18.0);
   const [paymentStatus, setPaymentStatus] = useState<'paid' | 'partially_paid' | 'unpaid'>('paid');
   const [bayNumber, setBayNumber] = useState('');
+  const [bays, setBays] = useState<{ bay_id: string; bay_code: string; name: string; max_capacity_mt: number }[]>([]);
   const [notes, setNotes] = useState('');
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    async function fetchBays() {
+      try {
+        const res = await fetch('/api/bays');
+        const json = await res.json();
+        if (json.success && json.data?.bays) {
+          setBays(json.data.bays);
+        }
+      } catch (err) {
+        console.error('Failed to load bays for bills:', err);
+      }
+    }
+    fetchBays();
+  }, []);
 
   if (!isOpen) return null;
 
@@ -316,16 +332,26 @@ export function AdminBillEntryModal({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-steel-700 mb-1">
-                  Yard Bay / Stacking Rack
+                <label className="block text-xs font-semibold text-steel-700 mb-1 flex items-center justify-between">
+                  <span>Yard Bay / Stacking Berth</span>
+                  {bays.length > 0 && (
+                    <span className="text-[10px] font-mono text-emerald-800 font-bold lowercase">
+                      ({bays.length} in db)
+                    </span>
+                  )}
                 </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Bay B-04"
+                <select
                   value={bayNumber}
                   onChange={(e) => setBayNumber(e.target.value)}
-                  className="w-full text-xs px-3 py-2 border border-steel-300 rounded-lg focus:ring-2 focus:ring-brand/30 focus:border-brand"
-                />
+                  className="w-full text-xs px-3 py-2 border border-steel-300 rounded-lg focus:ring-2 focus:ring-brand/30 focus:border-brand bg-white cursor-pointer"
+                >
+                  <option value="">Unassigned / Yard Floor</option>
+                  {bays.map((b) => (
+                    <option key={b.bay_id || b.bay_code} value={b.bay_code}>
+                      {b.bay_code} — {b.name} ({b.max_capacity_mt} MT)
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>

@@ -11,6 +11,7 @@ interface SaasAdminLayoutProps {
   lotsCount?: number;
   billsCount?: number;
   movementsCount?: number;
+  baysCount?: number;
   onSearchChange?: (val: string) => void;
   onQuickNewLot?: () => void;
 }
@@ -20,6 +21,7 @@ export function SaasAdminLayout({
   lotsCount = 0,
   billsCount = 0,
   movementsCount = 0,
+  baysCount: explicitBaysCount,
   onSearchChange,
   onQuickNewLot,
 }: SaasAdminLayoutProps) {
@@ -27,6 +29,7 @@ export function SaasAdminLayout({
   const [user, setUser] = useState<{ id: string; username: string; fullName: string; role: string } | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [baysCount, setBaysCount] = useState<number | undefined>(explicitBaysCount);
 
   useEffect(() => {
     async function verifyAuth() {
@@ -47,8 +50,25 @@ export function SaasAdminLayout({
       }
     }
 
+    async function fetchBaysCount() {
+      if (explicitBaysCount !== undefined) {
+        setBaysCount(explicitBaysCount);
+        return;
+      }
+      try {
+        const res = await fetch('/api/bays');
+        const json = await res.json();
+        if (json.success && json.data?.bays) {
+          setBaysCount(json.data.bays.length);
+        }
+      } catch (e) {
+        console.error('Failed to fetch bays count for sidebar:', e);
+      }
+    }
+
     verifyAuth();
-  }, [router]);
+    fetchBaysCount();
+  }, [router, explicitBaysCount]);
 
   if (checkingAuth) {
     return (
@@ -71,6 +91,7 @@ export function SaasAdminLayout({
           lotsCount={lotsCount}
           billsCount={billsCount}
           movementsCount={movementsCount}
+          baysCount={baysCount}
         />
       </div>
 
@@ -100,6 +121,7 @@ export function SaasAdminLayout({
             lotsCount={lotsCount}
             billsCount={billsCount}
             movementsCount={movementsCount}
+            baysCount={baysCount}
             onCloseMobile={() => setMobileMenuOpen(false)}
           />
         </div>

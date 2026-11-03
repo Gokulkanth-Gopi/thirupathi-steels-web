@@ -3,6 +3,7 @@ import {
   getStockLotById,
   getStockLotMovements,
   adjustStockLotWithLock,
+  updateStockLotBay,
 } from '@/lib/db/stock';
 import { adjustStockLotSchema } from '@/lib/validations/stock';
 import { getAuthenticatedUser, verifyMutationOrigin } from '@/lib/auth';
@@ -109,6 +110,56 @@ export async function PUT(
     return NextResponse.json(
       { success: false, error: error?.message || 'Failed to adjust stock lot' },
       { status: isConflict ? 409 : 500 }
+    );
+  }
+}
+
+/**
+ * PATCH /api/stock/[id]
+ * Authenticated: Relocate or update stock lot bay allocation in PostgreSQL
+ */
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const user = await getAuthenticatedUser(request);
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Staff session required' },
+        { status: 401 }
+      );
+    }
+
+    if (!verifyMutationOrigin(request)) {
+      return NextResponse.json(
+        { success: false, error: 'Forbidden: Cross-origin mutation request rejected' },
+        { status: 403 }
+      );
+    }
+
+    const body = await request.json();
+    const { bayNumber } = body;
+
+    const updatedLot = await updateStockLotBay(id, bayNumber || null);
+    if (!updatedLot) {
+      return NextResponse.json(
+        { success: false, error: 'Stock lot not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Lot '${updatedLot.lot_number}' relocated to ${bayNumber || 'Salem Yard Floor'}.`,
+      data: updatedLot,
+    });
+  } catch (error: any) {
+    console.error('API Error in PATCH /api/stock/[id]:', error?.message || error);
+    return NextResponse.json(
+      { success: false, error: error?.message || 'Failed to update bay allocation' },
+      { status: 500 }
     );
   }
 }

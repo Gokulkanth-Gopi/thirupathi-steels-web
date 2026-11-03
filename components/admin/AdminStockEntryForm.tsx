@@ -16,6 +16,7 @@ export function AdminStockEntryForm({ onSuccess }: AdminStockEntryFormProps) {
   const [quantityKg, setQuantityKg] = useState<string>('');
   const [location, setLocation] = useState('Salem Main Yard');
   const [bayNumber, setBayNumber] = useState('Bay A-1');
+  const [bays, setBays] = useState<{ bay_id: string; bay_code: string; name: string; max_capacity_mt: number; section: string }[]>([]);
   const [mfgBatchNo, setMfgBatchNo] = useState('');
   const [reason, setReason] = useState('Verified Salem Yard consignment arrival');
   const [referenceNo, setReferenceNo] = useState('');
@@ -23,6 +24,24 @@ export function AdminStockEntryForm({ onSuccess }: AdminStockEntryFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    async function fetchBays() {
+      try {
+        const res = await fetch('/api/bays');
+        const json = await res.json();
+        if (json.success && json.data?.bays) {
+          setBays(json.data.bays);
+          if (json.data.bays.length > 0 && (!bayNumber || bayNumber === 'Bay A-1')) {
+            setBayNumber(json.data.bays[0].bay_code);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load bays for stock entry:', err);
+      }
+    }
+    fetchBays();
+  }, []);
 
   const numericQty = parseFloat(quantityKg) || 0;
   const mtEquivalent = (numericQty / 1000).toFixed(3);
@@ -200,16 +219,26 @@ export function AdminStockEntryForm({ onSuccess }: AdminStockEntryFormProps) {
 
           {/* Bay Number */}
           <div>
-            <label className="block text-xs font-bold text-accent mb-1 uppercase tracking-wider">
-              Yard Bay / Stacking Rack
+            <label className="block text-xs font-bold text-accent mb-1 uppercase tracking-wider flex items-center justify-between">
+              <span>Yard Bay / Berth</span>
+              {bays.length > 0 && (
+                <span className="text-[10px] font-mono text-emerald-800 font-bold lowercase">
+                  ({bays.length} active in db)
+                </span>
+              )}
             </label>
-            <input
-              type="text"
+            <select
               value={bayNumber}
               onChange={(e) => setBayNumber(e.target.value)}
-              placeholder="e.g. Bay A-1"
-              className="w-full px-3 py-2 bg-neutral border border-steel-200 rounded-lg text-sm text-accent focus:outline-none focus:border-brand focus:bg-white"
-            />
+              className="w-full px-3 py-2 bg-neutral border border-steel-200 rounded-lg text-sm text-accent focus:outline-none focus:border-brand focus:bg-white cursor-pointer"
+            >
+              <option value="">Unassigned / Yard Floor</option>
+              {bays.map((b) => (
+                <option key={b.bay_id || b.bay_code} value={b.bay_code}>
+                  {b.bay_code} — {b.name} ({b.max_capacity_mt} MT)
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Mfg Batch / Heat No */}

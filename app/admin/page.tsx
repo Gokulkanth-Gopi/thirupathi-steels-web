@@ -13,16 +13,19 @@ export default function SaasAdminDashboardPage() {
   const [metrics, setMetrics] = useState<any | null>(null);
   const [billsCount, setBillsCount] = useState(0);
   const [movementsCount, setMovementsCount] = useState(0);
+  const [baysCount, setBaysCount] = useState<number | undefined>(undefined);
+  const [totalCapacityMt, setTotalCapacityMt] = useState<number | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [showStockModal, setShowStockModal] = useState(false);
 
   async function loadDashboardData() {
     try {
       setLoading(true);
-      const [stockRes, billsRes, movementsRes] = await Promise.all([
+      const [stockRes, billsRes, movementsRes, baysRes] = await Promise.all([
         fetch('/api/stock', { cache: 'no-store' }),
         fetch('/api/admin/bills', { cache: 'no-store' }),
         fetch('/api/admin/movements', { cache: 'no-store' }),
+        fetch('/api/bays', { cache: 'no-store' }),
       ]);
 
       const stockJson = await stockRes.json();
@@ -40,6 +43,16 @@ export default function SaasAdminDashboardPage() {
       if (movementsJson.success) {
         setMovementsCount(typeof movementsJson.totalCount === 'number' ? movementsJson.totalCount : 0);
       }
+
+      const baysJson = await baysRes.json();
+      if (baysJson.success && baysJson.data) {
+        if (Array.isArray(baysJson.data.bays)) {
+          setBaysCount(baysJson.data.bays.length);
+        }
+        if (typeof baysJson.data.totalCapacityMt === 'number') {
+          setTotalCapacityMt(baysJson.data.totalCapacityMt);
+        }
+      }
     } catch (err) {
       console.error('Failed to load dashboard data:', err);
     } finally {
@@ -56,12 +69,14 @@ export default function SaasAdminDashboardPage() {
       lotsCount={lots.length}
       billsCount={billsCount}
       movementsCount={movementsCount}
+      baysCount={baysCount}
       onQuickNewLot={() => setShowStockModal(true)}
     >
       <SaasDashboardView
         lots={lots}
         metrics={metrics}
         billsCount={billsCount}
+        totalCapacityMt={totalCapacityMt}
         onRefresh={loadDashboardData}
         onOpenConsignmentModal={() => router.push('/admin/bills')}
         onOpenAdjustModal={() => setShowStockModal(true)}

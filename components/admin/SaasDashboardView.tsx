@@ -59,6 +59,7 @@ interface SaasDashboardViewProps {
     lastUpdatedAt?: string;
   } | null;
   billsCount?: number;
+  totalCapacityMt?: number;
   onRefresh?: () => void;
   onOpenConsignmentModal?: () => void;
   onOpenAdjustModal?: () => void;
@@ -68,6 +69,7 @@ export function SaasDashboardView({
   lots,
   metrics,
   billsCount = 0,
+  totalCapacityMt: propCapacityMt,
   onRefresh,
   onOpenConsignmentModal,
   onOpenAdjustModal,
@@ -134,8 +136,8 @@ export function SaasDashboardView({
     };
   });
 
-  // Calculate Yard Capacity Percentage against standard 330 MT capacity
-  const totalCapacityMt = 330;
+  // Calculate Yard Capacity Percentage against database capacity
+  const totalCapacityMt = propCapacityMt !== undefined && propCapacityMt > 0 ? propCapacityMt : 330;
   const capacityPercent = totalCapacityMt > 0 ? Math.min(100, Math.round((Number(totalMt) / totalCapacityMt) * 100)) : 0;
   const dashOffset = Number((125.6 * (1 - capacityPercent / 100)).toFixed(1));
 

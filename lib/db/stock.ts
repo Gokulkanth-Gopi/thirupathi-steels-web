@@ -870,6 +870,19 @@ export async function getYardBaysData(): Promise<{
 }
 
 /**
+ * Admin: Update/relocate a stock lot's physical yard bay in PostgreSQL
+ */
+export async function updateStockLotBay(lotId: string, bayNumber: string | null): Promise<any> {
+  const now = new Date().toISOString();
+  await execute(
+    `UPDATE stock_lots SET bay_number = ?, updated_at = ? WHERE id = ?`,
+    [bayNumber ? bayNumber.trim() : null, now, lotId]
+  );
+  const updatedLot = await getStockLotById(lotId);
+  return updatedLot;
+}
+
+/**
  * Retrieve database system statistics for settings & diagnostics
  */
 export async function getAdminDatabaseStats(): Promise<{
@@ -881,7 +894,7 @@ export async function getAdminDatabaseStats(): Promise<{
   totalKg: number;
   serverTime: string;
 }> {
-  const [stockLotsCount, movementsCount, billsCount, docsCount, brandsCount, diametersCount, adminUsersCount] =
+  const [stockLotsCount, movementsCount, billsCount, docsCount, brandsCount, diametersCount, adminUsersCount, yardBaysCount] =
     await Promise.all([
       query<{ count: number }>('SELECT COUNT(*) as count FROM stock_lots'),
       query<{ count: number }>('SELECT COUNT(*) as count FROM stock_movements'),
@@ -890,6 +903,7 @@ export async function getAdminDatabaseStats(): Promise<{
       query<{ count: number }>('SELECT COUNT(*) as count FROM brands'),
       query<{ count: number }>('SELECT COUNT(*) as count FROM diameters'),
       query<{ count: number }>('SELECT COUNT(*) as count FROM admin_users'),
+      query<{ count: number }>('SELECT COUNT(*) as count FROM yard_bays'),
     ]);
 
   const tonnageRes = await query<{ total_kg: number }>(
@@ -910,6 +924,7 @@ export async function getAdminDatabaseStats(): Promise<{
       brands: Number(brandsCount[0]?.count || 0),
       diameters: Number(diametersCount[0]?.count || 0),
       admin_users: Number(adminUsersCount[0]?.count || 0),
+      yard_bays: Number(yardBaysCount[0]?.count || 0),
     },
     totalTonnageMt: Number((totalKg / 1000.0).toFixed(3)),
     totalKg,

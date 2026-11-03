@@ -23,6 +23,7 @@ interface SaasSidebarProps {
   lotsCount?: number;
   billsCount?: number;
   movementsCount?: number;
+  baysCount?: number;
   onCloseMobile?: () => void;
 }
 
@@ -30,6 +31,7 @@ export function SaasSidebar({
   lotsCount = 0,
   billsCount = 0,
   movementsCount = 0,
+  baysCount,
   onCloseMobile,
 }: SaasSidebarProps) {
   const pathname = usePathname();
@@ -84,7 +86,7 @@ export function SaasSidebar({
       href: '/admin/bays',
       icon: Layers,
       active: isBays,
-      badge: '8 Bays',
+      badge: baysCount !== undefined ? `${baysCount} Bays` : 'Bays Map',
       badgeColor: isBays ? 'bg-[#0c4a3b] text-white' : 'bg-emerald-50 text-emerald-800 border border-emerald-200/60',
     },
     {
@@ -288,7 +290,7 @@ export function SaasSidebar({
       </div>
 
       {/* Bottom Live System Indicator */}
-      <div className="mt-6 p-4 rounded-2xl bg-gradient-to-br from-[#0c382b] via-[#092d22] to-[#041a13] text-white relative overflow-hidden shadow-lg shadow-[#0c382b]/25 group">
+      {/* <div className="mt-6 p-4 rounded-2xl bg-gradient-to-br from-[#0c382b] via-[#092d22] to-[#041a13] text-white relative overflow-hidden shadow-lg shadow-[#0c382b]/25 group">
         <div className="absolute -right-6 -bottom-6 w-28 h-28 rounded-full border border-emerald-500/20 pointer-events-none group-hover:scale-110 transition-transform duration-700" />
         <div className="absolute -right-2 -bottom-2 w-20 h-20 rounded-full border border-emerald-400/25 pointer-events-none" />
 
@@ -320,7 +322,7 @@ export function SaasSidebar({
             </Link>
           </div>
         </div>
-      </div>
+      </div> */}
     </aside>
   );
 }

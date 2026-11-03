@@ -32,6 +32,53 @@ export function AdminStockTable({ lots, initialSearch = '', onRefresh }: AdminSt
   const [adjustType, setAdjustType] = useState<'add' | 'subtract' | 'set'>('subtract');
   const [adjustReason, setAdjustReason] = useState<string>('');
 
+  // DB Bay Integration
+  const [dbBays, setDbBays] = useState<{ bay_id: string; bay_code: string; name: string; max_capacity_mt: number }[]>([]);
+  const [relocateLot, setRelocateLot] = useState<any | null>(null);
+  const [targetBay, setTargetBay] = useState<string>('');
+  const [relocating, setRelocating] = useState(false);
+  const [relocateMsg, setRelocateMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  React.useEffect(() => {
+    async function fetchBays() {
+      try {
+        const res = await fetch('/api/bays');
+        const json = await res.json();
+        if (json.success && json.data?.bays) {
+          setDbBays(json.data.bays);
+        }
+      } catch (e) {
+        console.error('Failed to load DB bays in stock table:', e);
+      }
+    }
+    fetchBays();
+  }, []);
+
+  async function handleRelocateSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!relocateLot) return;
+    try {
+      setRelocating(true);
+      setRelocateMsg(null);
+      const res = await fetch(`/api/stock/${relocateLot.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bayNumber: targetBay }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        setRelocateMsg({ type: 'error', text: json.error || 'Failed to relocate lot.' });
+        return;
+      }
+      setRelocateLot(null);
+      onRefresh();
+    } catch (err: any) {
+      setRelocateMsg({ type: 'error', text: err?.message || 'Network error relocating lot.' });
+    } finally {
+      setRelocating(false);
+    }
+  }
+
   // Filters
   const [search, setSearch] = useState(initialSearch);
 
@@ -46,12 +93,15 @@ export function AdminStockTable({ lots, initialSearch = '', onRefresh }: AdminSt
   const [bayFilter, setBayFilter] = useState('all');
   const [sortBy, setSortBy] = useState<'weight_desc' | 'weight_asc' | 'lot_asc' | 'diameter_asc'>('weight_desc');
 
-  // Extract unique brands, diameters, and bays for filter dropdowns
+  // Extract unique brands, diameters, and all bays from DB + lots
   const brands = Array.from(new Set(lots.map((l) => l.brand_name).filter(Boolean)));
   const diameters = Array.from(new Set(lots.map((l) => Number(l.diameter_mm)).filter(Boolean))).sort(
     (a, b) => a - b
   );
-  const bays = Array.from(new Set(lots.map((l) => l.bay_number).filter(Boolean)));
+  const bays = Array.from(new Set([
+    ...dbBays.map((b) => b.bay_code),
+    ...lots.map((l) => l.bay_number).filter(Boolean)
+  ])).sort();
 
   // Filter logic
   let filtered = lots.filter((l) => {
@@ -391,6 +441,20 @@ export function AdminStockTable({ lots, initialSearch = '', onRefresh }: AdminSt
                           <SlidersHorizontal className="w-3.5 h-3.5" />
                           <span>Adjust</span>
                         </button>
+
+                        {/* Relocate Bay Button */}
+                        <button
+                          onClick={() => {
+                            setRelocateLot(lot);
+                            setTargetBay(lot.bay_number || '');
+                            setRelocateMsg(null);
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs inline-flex items-center gap-1 border border-emerald-200 transition-colors cursor-pointer"
+                          title="Reassign to another bay in DB"
+                        >
+                          <Layers className="w-3.5 h-3.5 text-emerald-700" />
+                          <span>Move Bay</span>
+                        </button>
                       </td>
                     </tr>
                   );
@@ -412,6 +476,89 @@ export function AdminStockTable({ lots, initialSearch = '', onRefresh }: AdminSt
             onRefresh();
           }}
         />
+      )}
+
+      {/* Relocate Yard Bay Modal */}
+      {relocateLot && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl border border-steel-200 shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-steel-100">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-100">
+                  <Layers className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-[#111827]">
+                    Relocate Stacking Bay
+                  </h3>
+                  <p className="text-xs text-steel-500 font-mono">
+                    Lot: {relocateLot.lot_number} ({relocateLot.brand_name} {relocateLot.diameter_mm}mm)
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <form onSubmit={handleRelocateSubmit} className="space-y-4">
+              {relocateMsg && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs">
+                  {relocateMsg.text}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-xs font-bold text-steel-700 mb-1">
+                  Current Bay Location
+                </label>
+                <div className="px-3 py-2 bg-steel-50 rounded-xl border border-steel-200 text-xs font-mono font-bold text-slate-800">
+                  {relocateLot.bay_number || 'Salem Yard Floor (Unassigned)'}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-steel-700 mb-1">
+                  Assign to Database Yard Bay *
+                </label>
+                <select
+                  value={targetBay}
+                  onChange={(e) => setTargetBay(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-steel-300 focus:outline-none focus:ring-2 focus:ring-emerald-600 bg-white cursor-pointer"
+                >
+                  <option value="">Unassigned / Yard Floor</option>
+                  {dbBays.map((b) => (
+                    <option key={b.bay_id || b.bay_code} value={b.bay_code}>
+                      {b.bay_code} — {b.name} ({b.max_capacity_mt} MT)
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[10px] text-steel-500 mt-1">
+                  Selecting a bay updates the lot in PostgreSQL and recalculates bay occupancy on the Salem Bay Map.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-steel-100">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setRelocateLot(null)}
+                  disabled={relocating}
+                  className="cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="sm"
+                  disabled={relocating}
+                  className="bg-[#0c4a3b] hover:bg-[#073328] text-white cursor-pointer"
+                >
+                  {relocating ? 'Saving...' : 'Update Yard Bay'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );
