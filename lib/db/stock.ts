@@ -576,6 +576,31 @@ export async function getAllStockMovements(options?: {
   return { movements, totalCount };
 }
 
+export interface YardBayRow {
+  id: string;
+  bay_code: string;
+  name: string;
+  section: string;
+  primary_diameters: string;
+  max_capacity_mt: number;
+  display_order: number;
+  is_active: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface YardBayInput {
+  bayCode: string;
+  name: string;
+  section: string;
+  primaryDiameters?: number[] | string;
+  maxCapacityMt: number;
+  displayOrder?: number;
+  isActive?: boolean;
+  notes?: string;
+}
+
 export interface YardBayStatus {
   bay_id: string;
   bay_code: string;
@@ -587,7 +612,155 @@ export interface YardBayStatus {
   current_quantity_mt: number;
   occupancy_percent: number;
   status: 'optimal' | 'near_full' | 'low' | 'empty';
+  display_order: number;
+  is_active: boolean;
+  notes?: string | null;
   lots: any[];
+}
+
+export async function getAllYardBaysRaw(): Promise<YardBayRow[]> {
+  try {
+    const rows = await query<YardBayRow>(`
+      SELECT 
+        id, 
+        bay_code, 
+        name, 
+        section, 
+        primary_diameters, 
+        ROUND(max_capacity_mt, 2) AS max_capacity_mt, 
+        display_order, 
+        is_active, 
+        notes, 
+        created_at, 
+        updated_at
+      FROM yard_bays
+      ORDER BY display_order ASC, bay_code ASC
+    `);
+    return rows;
+  } catch (err) {
+    console.warn('yard_bays table query failed, falling back:', err);
+    return [];
+  }
+}
+
+export async function getYardBayById(id: string): Promise<YardBayRow | null> {
+  const rows = await query<YardBayRow>(`
+    SELECT 
+      id, 
+      bay_code, 
+      name, 
+      section, 
+      primary_diameters, 
+      ROUND(max_capacity_mt, 2) AS max_capacity_mt, 
+      display_order, 
+      is_active, 
+      notes, 
+      created_at, 
+      updated_at
+    FROM yard_bays
+    WHERE id = ? OR bay_code = ?
+    LIMIT 1
+  `, [id, id]);
+  return rows[0] || null;
+}
+
+export async function createYardBay(input: YardBayInput): Promise<YardBayRow> {
+  const id = `bay-${input.bayCode.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now().toString(36)}`;
+  const now = new Date().toISOString();
+  const primaryDiametersStr = Array.isArray(input.primaryDiameters)
+    ? input.primaryDiameters.join(',')
+    : String(input.primaryDiameters || '');
+
+  await execute(`
+    INSERT INTO yard_bays (
+      id, bay_code, name, section, primary_diameters, max_capacity_mt, display_order, is_active, notes, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `, [
+    id,
+    input.bayCode.trim(),
+    input.name.trim(),
+    input.section.trim(),
+    primaryDiametersStr,
+    Number(input.maxCapacityMt) || 45,
+    Number(input.displayOrder) || 0,
+    input.isActive !== undefined ? Boolean(input.isActive) : true,
+    input.notes ? input.notes.trim() : null,
+    now,
+    now,
+  ]);
+
+  const created = await getYardBayById(id);
+  if (!created) throw new Error('Failed to retrieve newly created yard bay');
+  return created;
+}
+
+export async function updateYardBay(id: string, input: Partial<YardBayInput>): Promise<YardBayRow> {
+  const existing = await getYardBayById(id);
+  if (!existing) {
+    throw new Error(`Yard bay with ID "${id}" not found`);
+  }
+
+  const bayCode = input.bayCode !== undefined ? input.bayCode.trim() : existing.bay_code;
+  const name = input.name !== undefined ? input.name.trim() : existing.name;
+  const section = input.section !== undefined ? input.section.trim() : existing.section;
+  const primaryDiameters = input.primaryDiameters !== undefined
+    ? (Array.isArray(input.primaryDiameters) ? input.primaryDiameters.join(',') : String(input.primaryDiameters))
+    : existing.primary_diameters;
+  const maxCapacityMt = input.maxCapacityMt !== undefined ? Number(input.maxCapacityMt) : Number(existing.max_capacity_mt);
+  const displayOrder = input.displayOrder !== undefined ? Number(input.displayOrder) : existing.display_order;
+  const isActive = input.isActive !== undefined ? Boolean(input.isActive) : existing.is_active;
+  const notes = input.notes !== undefined ? (input.notes ? input.notes.trim() : null) : existing.notes;
+  const now = new Date().toISOString();
+
+  await execute(`
+    UPDATE yard_bays SET
+      bay_code = ?,
+      name = ?,
+      section = ?,
+      primary_diameters = ?,
+      max_capacity_mt = ?,
+      display_order = ?,
+      is_active = ?,
+      notes = ?,
+      updated_at = ?
+    WHERE id = ?
+  `, [
+    bayCode,
+    name,
+    section,
+    primaryDiameters,
+    maxCapacityMt,
+    displayOrder,
+    isActive,
+    notes,
+    now,
+    existing.id,
+  ]);
+
+  const updated = await getYardBayById(existing.id);
+  if (!updated) throw new Error('Failed to retrieve updated yard bay');
+  return updated;
+}
+
+export async function deleteYardBay(id: string): Promise<{ success: boolean; message?: string }> {
+  const existing = await getYardBayById(id);
+  if (!existing) {
+    throw new Error(`Yard bay with ID "${id}" not found`);
+  }
+
+  // Safety check: verify if any stock lot is located in this bay
+  const activeLots = await query<{ count: number }>(`
+    SELECT COUNT(*) as count FROM stock_lots 
+    WHERE (bay_number = ? OR bay_number = ?) AND is_active = TRUE
+  `, [existing.bay_code, existing.id]);
+
+  const count = Number(activeLots[0]?.count || 0);
+  if (count > 0) {
+    throw new Error(`Cannot delete bay "${existing.bay_code}": ${count} active stock lot(s) are stored here. Reassign or clear the lots before deleting.`);
+  }
+
+  await execute(`DELETE FROM yard_bays WHERE id = ?`, [existing.id]);
+  return { success: true, message: `Bay "${existing.bay_code}" deleted successfully.` };
 }
 
 /**
@@ -602,92 +775,58 @@ export async function getYardBaysData(): Promise<{
   // 1. Fetch all active stock lots
   const lots = await getAdminStockLots();
 
-  // Standard Salem Yard Bay Layout Configuration
-  const standardBays = [
-    {
-      bay_id: 'bay-a1',
-      bay_code: 'Bay A-1',
-      name: 'Primary Column & Footing Stacking',
-      section: 'Section A (Heavy Rebars)',
-      primary_diameters: [12, 16],
-      max_capacity_mt: 60,
-    },
-    {
-      bay_id: 'bay-a2',
-      bay_code: 'Bay A-2',
-      name: 'High-Rise Beam & Transfer Girder Stacking',
-      section: 'Section A (Heavy Rebars)',
-      primary_diameters: [16, 20],
-      max_capacity_mt: 50,
-    },
-    {
-      bay_id: 'bay-b1',
-      bay_code: 'Bay B-1',
-      name: 'Residential Slab & Staircase Stacking',
-      section: 'Section B (Medium Rebars)',
-      primary_diameters: [10],
-      max_capacity_mt: 40,
-    },
-    {
-      bay_id: 'bay-b2',
-      bay_code: 'Bay B-2',
-      name: 'Raft Foundation & Pier Stacking',
-      section: 'Section B (Medium Rebars)',
-      primary_diameters: [20],
-      max_capacity_mt: 40,
-    },
-    {
-      bay_id: 'bay-c1',
-      bay_code: 'Bay C-1',
-      name: 'Lateral Ties & Beam Stirrup Bundles',
-      section: 'Section C (Stirrup & Coils)',
-      primary_diameters: [8],
-      max_capacity_mt: 30,
-    },
-    {
-      bay_id: 'bay-c2',
-      bay_code: 'Bay C-2',
-      name: 'Specialized 20mm & Secondary Coils',
-      section: 'Section C (Stirrup & Coils)',
-      primary_diameters: [8, 20],
-      max_capacity_mt: 30,
-    },
-    {
-      bay_id: 'bay-d1',
-      bay_code: 'Bay D-1',
-      name: 'Civil Infrastructure & Bridge Cores',
-      section: 'Section D (Infrastructure)',
-      primary_diameters: [25],
-      max_capacity_mt: 35,
-    },
-    {
-      bay_id: 'bay-e1',
-      bay_code: 'Bay E-1',
-      name: 'Secondary & Commercial Fe 550D Rebars',
-      section: 'Section E (Commercial Lots)',
-      primary_diameters: [10, 12, 16],
-      max_capacity_mt: 45,
-    },
-  ];
+  // 2. Fetch bays dynamically from yard_bays table
+  let rawBays = await getAllYardBaysRaw();
+
+  // Fallback to standard Salem configuration if yard_bays table is empty
+  if (!rawBays || rawBays.length === 0) {
+    rawBays = [
+      { id: 'bay-a1', bay_code: 'Bay A-1', name: 'Primary Column & Footing Stacking', section: 'Section A (Heavy Rebars)', primary_diameters: '12,16', max_capacity_mt: 60, display_order: 1, is_active: true, notes: 'Gantry 1 Heavy Overhead Crane Access', created_at: '', updated_at: '' },
+      { id: 'bay-a2', bay_code: 'Bay A-2', name: 'High-Rise Beam & Transfer Girder Stacking', section: 'Section A (Heavy Rebars)', primary_diameters: '16,20', max_capacity_mt: 50, display_order: 2, is_active: true, notes: 'Direct Trailer Loading Bay', created_at: '', updated_at: '' },
+      { id: 'bay-b1', bay_code: 'Bay B-1', name: 'Residential Slab & Staircase Stacking', section: 'Section B (Medium Rebars)', primary_diameters: '10', max_capacity_mt: 40, display_order: 3, is_active: true, notes: 'High Turnover Residential Fast Track', created_at: '', updated_at: '' },
+      { id: 'bay-b2', bay_code: 'Bay B-2', name: 'Raft Foundation & Pier Stacking', section: 'Section B (Medium Rebars)', primary_diameters: '20', max_capacity_mt: 40, display_order: 4, is_active: true, notes: 'Heavy Infrastructure Ground Berth', created_at: '', updated_at: '' },
+      { id: 'bay-c1', bay_code: 'Bay C-1', name: 'Lateral Ties & Beam Stirrup Bundles', section: 'Section C (Stirrup & Coils)', primary_diameters: '8', max_capacity_mt: 30, display_order: 5, is_active: true, notes: 'Adjacent to Cut & Bend Workshop', created_at: '', updated_at: '' },
+      { id: 'bay-c2', bay_code: 'Bay C-2', name: 'Specialized 20mm & Secondary Coils', section: 'Section C (Stirrup & Coils)', primary_diameters: '8,20', max_capacity_mt: 30, display_order: 6, is_active: true, notes: 'Dual Diameter Secondary Staging', created_at: '', updated_at: '' },
+      { id: 'bay-d1', bay_code: 'Bay D-1', name: 'Civil Infrastructure & Bridge Cores', section: 'Section D (Infrastructure)', primary_diameters: '25', max_capacity_mt: 35, display_order: 7, is_active: true, notes: 'Certified Infrastructure Lot Berth', created_at: '', updated_at: '' },
+      { id: 'bay-e1', bay_code: 'Bay E-1', name: 'Secondary & Commercial Fe 550D Rebars', section: 'Section E (Commercial Lots)', primary_diameters: '10,12,16', max_capacity_mt: 45, display_order: 8, is_active: true, notes: 'Secondary Commercial Inward Depot', created_at: '', updated_at: '' },
+    ];
+  }
 
   let totalCapacityMt = 0;
   let totalOccupiedMt = 0;
 
-  const bays: YardBayStatus[] = standardBays.map((def) => {
-    totalCapacityMt += def.max_capacity_mt;
+  const bays: YardBayStatus[] = rawBays.map((def) => {
+    const capMt = Number(def.max_capacity_mt) || 0;
+    if (def.is_active) {
+      totalCapacityMt += capMt;
+    }
 
-    // Filter lots assigned to this bay (or fuzzy match e.g. "Bay A-1")
+    // Parse primary diameters: comma-separated or array
+    let primaryDiameters: number[] = [];
+    if (typeof def.primary_diameters === 'string') {
+      primaryDiameters = def.primary_diameters
+        .split(',')
+        .map((s) => parseInt(s.trim(), 10))
+        .filter((n) => !isNaN(n));
+    } else if (Array.isArray(def.primary_diameters)) {
+      primaryDiameters = (def.primary_diameters as any[]).map(Number).filter((n) => !isNaN(n));
+    }
+
+    // Filter lots assigned to this bay (exact or case-insensitive code/id match)
     const matchedLots = lots.filter(
-      (l) => l.bay_number && l.bay_number.toLowerCase().trim() === def.bay_code.toLowerCase().trim()
+      (l) =>
+        l.bay_number &&
+        (l.bay_number.toLowerCase().trim() === def.bay_code.toLowerCase().trim() ||
+         l.bay_number.toLowerCase().trim() === def.id.toLowerCase().trim())
     );
 
     const currentKg = matchedLots.reduce((acc, curr) => acc + Number(curr.quantity_kg || 0), 0);
     const currentMt = Number((currentKg / 1000.0).toFixed(3));
     totalOccupiedMt += currentMt;
 
-    const occupancyPercent = Number(
-      Math.min(100, Math.round((currentMt / def.max_capacity_mt) * 100))
-    );
+    const occupancyPercent = capMt > 0
+      ? Number(Math.min(100, Math.round((currentMt / capMt) * 100)))
+      : 0;
 
     let status: 'optimal' | 'near_full' | 'low' | 'empty' = 'optimal';
     if (occupancyPercent === 0) {
@@ -701,16 +840,19 @@ export async function getYardBaysData(): Promise<{
     }
 
     return {
-      bay_id: def.bay_id,
+      bay_id: def.id,
       bay_code: def.bay_code,
       name: def.name,
       section: def.section,
-      primary_diameters: def.primary_diameters,
-      max_capacity_mt: def.max_capacity_mt,
+      primary_diameters: primaryDiameters,
+      max_capacity_mt: capMt,
       current_quantity_kg: currentKg,
       current_quantity_mt: currentMt,
       occupancy_percent: occupancyPercent,
       status,
+      display_order: Number(def.display_order) || 0,
+      is_active: def.is_active !== false,
+      notes: def.notes || null,
       lots: matchedLots,
     };
   });
